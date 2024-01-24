@@ -50,6 +50,18 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/users/admin/:email', async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email: email });
+
+      if (user) {
+
+        res.send(user.role);
+      } else {
+        res.status(404).send('User not found');
+      }
+    });
+
 
     app.get('/users/:email', async (req, res) => {
       const email = req.params.email;
