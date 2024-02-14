@@ -35,7 +35,7 @@ async function run() {
     app.post('/users', async (req, res) => {
       const newUser = req.body;
       console.log(newUser);
-      newUser.role = 'user';
+      newUser.role = 'Survey Participant';
       console.log(newUser);
       const existingUser = await userCollection.findOne({ email: newUser.email });
       if (existingUser) {console.log('user already');return res.status(200).send('Email already exists');}
