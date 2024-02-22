@@ -101,7 +101,7 @@ async function run() {
         
       } catch (error) {
         res.status(404).send({message: "data not found"});
-        
+        a
       }
 
     });
@@ -113,7 +113,7 @@ async function run() {
         const id = req.params.id;
         const filter = { _id: new ObjectId(id) };
         const survey = await surveyCollection.findOne(filter);
-        res.status(200).send({message: survey});
+        res.status(200).send(survey);git a
         
       } catch (err) {
         res.status(404).send({message: "no data found"});
