@@ -29,8 +29,10 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
-    const userCollection = client.db('universal').collection('User');
-    const surveyCollection = client.db('universal').collection('survey');
+    const db = client.db('universal')
+
+    const userCollection = db.collection('User');
+    const surveyCollection = db.collection('survey');
 
     app.post('/users', async (req, res) => {
       const newUser = req.body;
@@ -89,6 +91,39 @@ async function run() {
         else {return res.status(500).json({ error: 'Failed to update user' });}} catch (error) {console.error('Server Error:', error); 
         return res.status(500).json({ error: 'Internal server error' });}
     });
+    
+    // create api to get all survey
+    app.get('/get_survey', async (req, res) => {
+      try {
+        const survey = await surveyCollection.find().toArray();
+  
+        res.status(200).send(survey);
+        
+      } catch (error) {
+        res.status(404).send({message: "data not found"});
+        
+      }
+
+    });
+
+
+    // create api to get all survey
+    app.get('/get_survey/:id', async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const survey = await surveyCollection.findOne(filter);
+        res.status(200).send({message: survey});
+        
+      } catch (err) {
+        res.status(404).send({message: "no data found"});
+      }
+
+    });
+
+
+
+
 
 
     await client.db("admin").command({ ping: 1 });
