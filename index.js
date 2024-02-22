@@ -33,6 +33,7 @@ async function run() {
 
     const userCollection = db.collection('User');
     const surveyCollection = db.collection('survey');
+    const participantCollection = db.collection('participants');
 
     app.post('/users', async (req, res) => {
       const newUser = req.body;
@@ -40,7 +41,7 @@ async function run() {
       newUser.role = 'Survey Participant';
       console.log(newUser);
       const existingUser = await userCollection.findOne({ email: newUser.email });
-      if (existingUser) {console.log('user already');return res.status(200).send('Email already exists');}
+      if (existingUser) { console.log('user already'); return res.status(200).send('Email already exists'); }
       const result = await userCollection.insertOne(newUser);
       res.send(result);
     });
@@ -83,24 +84,27 @@ async function run() {
         const filter = { _id: new ObjectId(id) };
         const updatedUser = { ...req.body };
         delete updatedUser._id;
-        if (Object.keys(updatedUser).length === 0) {return res.status(400).json({ error: 'No fields to update provided' });}
+        if (Object.keys(updatedUser).length === 0) { return res.status(400).json({ error: 'No fields to update provided' }); }
         const result = await userCollection.updateOne(filter, { $set: updatedUser });
-        console.log('Update Result:', result); 
-        if (result.matchedCount === 0) {return res.status(404).json({ error: 'User not found' });}
-        if (result.modifiedCount === 1) {return res.json({ message: 'User updated successfully' });} 
-        else {return res.status(500).json({ error: 'Failed to update user' });}} catch (error) {console.error('Server Error:', error); 
-        return res.status(500).json({ error: 'Internal server error' });}
+        console.log('Update Result:', result);
+        if (result.matchedCount === 0) { return res.status(404).json({ error: 'User not found' }); }
+        if (result.modifiedCount === 1) { return res.json({ message: 'User updated successfully' }); }
+        else { return res.status(500).json({ error: 'Failed to update user' }); }
+      } catch (error) {
+        console.error('Server Error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
     });
-    
+
     // create api to get all survey
     app.get('/get_survey', async (req, res) => {
       try {
         const survey = await surveyCollection.find().toArray();
-  
+
         res.status(200).send(survey);
-        
+
       } catch (error) {
-        res.status(404).send({message: "data not found"});
+        res.status(404).send({ message: "data not found" });
         a
       }
 
@@ -113,18 +117,32 @@ async function run() {
         const id = req.params.id;
         const filter = { _id: new ObjectId(id) };
         const survey = await surveyCollection.findOne(filter);
-        res.status(200).send(survey);git a
-        
+        res.status(200).send(survey);
+
       } catch (err) {
-        res.status(404).send({message: "no data found"});
+        res.status(404).send({ message: "no data found" });
       }
 
     });
 
 
+    // create api to create participant
+    app.post('/create_participant', async (req, res) => {
+      try {
+        const participant = req.body;
+        const result = await participantCollection.insertOne(participant);
+        res.status(201).send(result); // Sending the newly created participant data
+      } catch (err) {
+        console.error("Error:", err);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
 
 
 
+    app.get('/', (req, res) => {
+      res.send(`Universal Server is running`)
+    })
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -139,9 +157,7 @@ run().catch(console.dir);
 
 
 
-app.get('/', (req, res) => {
-  res.send(`Universal Server is running`)
-})
+
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`)
