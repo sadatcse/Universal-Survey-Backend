@@ -92,33 +92,31 @@ async function run() {
         return res.status(500).json({ error: 'Internal server error' });}
     });
     
-    // create api to get all survey
+
     app.get('/get_survey', async (req, res) => {
       try {
-        const survey = await surveyCollection.find().toArray();
-  
-        res.status(200).send(survey);
-        
+        const surveys = await surveyCollection.find().toArray(); 
+        res.status(200).send(surveys); 
       } catch (error) {
-        res.status(404).send({message: "data not found"});
-        a
+        res.status(500).send({ message: "Internal server error" }); 
       }
-
     });
 
 
     // create api to get all survey
     app.get('/get_survey/:id', async (req, res) => {
       try {
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) };
-        const survey = await surveyCollection.findOne(filter);
-        res.status(200).send(survey);git a
-        
+        const id = req.params.id; 
+        const filter = { _id: new ObjectId(id) }; 
+        const survey = await surveyCollection.findOne(filter); 
+        if (survey) { 
+          res.status(200).send(survey); 
+        } else {
+          res.status(404).send({ message: "No data found" }); 
+        }
       } catch (err) {
-        res.status(404).send({message: "no data found"});
+        res.status(500).send({ message: "Internal server error" }); 
       }
-
     });
 
 
