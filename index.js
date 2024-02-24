@@ -139,6 +139,42 @@ async function run() {
     });
 
 
+    // create api to create participant
+    app.post('/create_survey', async (req, res) => {
+        const survey = req.body;
+
+
+        
+      try {
+        const id = survey?._id;
+        if (id) {
+
+          const filter = { _id: new ObjectId(id) };
+
+          const options = { upsert: false };
+          delete survey._id
+          const updateDoc = {
+            $set: survey
+          };
+          // Update the first document that matches the filter
+          const result = await surveyCollection.updateOne(filter, updateDoc, options);
+
+          console.log(id)
+          
+          res.status(200).send(result)
+        } else {
+          const result = await surveyCollection.insertOne(survey);
+          res.status(200).send(result); // Sending the newly created participant data
+          console.log(result)
+
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+
 
     app.get('/', (req, res) => {
       res.send(`Universal Server is running`)
