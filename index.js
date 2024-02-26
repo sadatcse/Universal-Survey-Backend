@@ -169,8 +169,36 @@ async function run() {
     app.post("/create_participant", async (req, res) => {
       try {
         const participant = req.body;
-        const result = await participantCollection.insertOne(participant);
-        res.status(201).send(result); // Sending the newly created participant data
+        const filterSurvey = { _id: new ObjectId(participant.surveyId) };
+        const singleSurvey = await surveyCollection.findOne(filterSurvey);
+
+        // insertedId
+        if (Object.keys(singleSurvey).length > 0) {
+          const participantResult = await participantCollection.insertOne(
+            participant
+          );
+          console.log(participantResult);
+
+          if (participantResult.acknowledged) {
+            const options = { upsert: true };
+
+            const updateDoc = {
+              $push: {
+                participantIds: participant.surveyId,
+              },
+            };
+            // Update the first document that matches the filter
+            const surveyResult = await surveyCollection.updateOne(
+              filterSurvey,
+              updateDoc,
+              options
+            );
+
+            res.status(201).send({ surveyResult, participantResult }); // Sending the newly created participant data
+          }
+        }
+
+        // res.status(201).send({ message: Object.keys(singleSurvey) }); // Sending the newly created participant data
       } catch (err) {
         console.error("Error:", err);
         res.status(500).send({ message: "Internal server error" });
