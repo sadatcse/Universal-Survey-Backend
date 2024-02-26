@@ -217,6 +217,22 @@ async function run() {
       }
     });
 
+    // create API to get all survey participants
+    app.post("/get_participant", async (req, res) => {
+      try {
+        const participantIds = req.body?.participantIds;
+        const filter = {
+          surveyId: { $in: participantIds }, // Corrected MongoDB query filter
+        };
+        const survey = await participantCollection.find(filter).toArray();
+
+        res.status(200).send(survey);
+      } catch (error) {
+        console.log(error);
+        res.status(404).send({ message: "Data not found" });
+      }
+    });
+
     app.get("/", (req, res) => {
       res.send(`Universal Server is running`);
     });
