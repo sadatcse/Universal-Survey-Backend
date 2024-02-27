@@ -169,32 +169,60 @@ async function run() {
     app.post("/create_participant", async (req, res) => {
       try {
         const participant = req.body;
-        const filterSurvey = { _id: new ObjectId(participant.surveyId) };
-        const singleSurvey = await surveyCollection.findOne(filterSurvey);
+        if (participant.surveyId && !participant?._id) {
+          const filterSurvey = { _id: new ObjectId(participant.surveyId) };
+          const singleSurvey = await surveyCollection.findOne(filterSurvey);
 
-        // insertedId
-        if (Object.keys(singleSurvey).length > 0) {
-          const participantResult = await participantCollection.insertOne(
-            participant
-          );
-          console.log(participantResult);
+          // insertedId
+          if (Object.keys(singleSurvey).length > 0) {
+            console.log(Object.keys(singleSurvey).length > 0);
+            const participantResult = await participantCollection.insertOne(
+              participant
+            );
 
-          if (participantResult.acknowledged) {
+            if (participantResult?.acknowledged) {
+              const options = { upsert: true };
+
+              const updateDoc = {
+                $push: {
+                  participantIds: participantResult.insertedId,
+                },
+              };
+              // Update the first document that matches the filter
+              const surveyResult = await surveyCollection.updateOne(
+                filterSurvey,
+                updateDoc,
+                options
+              );
+
+              res.status(201).send({ surveyResult, participantResult }); // Sending the newly created participant data
+            }
+          }
+        } else {
+          if (participant._id) {
+            const filter = { _id: new ObjectId(participant?._id) };
             const options = { upsert: true };
+            console.log(participant.surveyIds[0]);
 
+            delete participant._id;
             const updateDoc = {
-              $push: {
-                participantIds: participant.surveyId,
-              },
+              $set: participant,
             };
+
             // Update the first document that matches the filter
-            const surveyResult = await surveyCollection.updateOne(
-              filterSurvey,
+            const surveyResult = await participantCollection.updateOne(
+              filter,
               updateDoc,
               options
             );
+            console.log(surveyResult);
+            res.status(201).send(surveyResult); // Sending the newly created participant data
+          } else {
+            const participantResult = await participantCollection.insertOne(
+              participant
+            );
 
-            res.status(201).send({ surveyResult, participantResult }); // Sending the newly created participant data
+            res.status(201).send(participantResult); // Sending the newly created participant data
           }
         }
 
@@ -211,6 +239,20 @@ async function run() {
         const survey = await participantCollection.find().toArray();
 
         res.status(200).send(survey);
+      } catch (error) {
+        res.status(404).send({ message: "data not found" });
+        a;
+      }
+    });
+
+    // create api to get participant by id
+    app.get("/get_participant/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const participant = await participantCollection.findOne(filter);
+
+        res.status(200).send(participant);
       } catch (error) {
         res.status(404).send({ message: "data not found" });
         a;
