@@ -77,6 +77,17 @@ async function run() {
       }
     });
 
+    app.get("/current_user/:id", async (req, res) => {
+      const id = req.params.id;
+      const user = await userCollection.findOne({ _id: new ObjectId(id) });
+
+      if (user) {
+        res.status(200).send(user);
+      } else {
+        res.status(404).send("User not found");
+      }
+    });
+
     app.patch("/users/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -195,7 +206,7 @@ async function run() {
                 options
               );
 
-              res.status(201).send({ surveyResult, participantResult }); // Sending the newly created participant data
+              res.status(200).send({ surveyResult, participantResult }); // Sending the newly created participant data
             }
           }
         } else {
@@ -216,13 +227,13 @@ async function run() {
               options
             );
             console.log(surveyResult);
-            res.status(201).send(surveyResult); // Sending the newly created participant data
+            res.status(200).send(surveyResult); // Sending the newly created participant data
           } else {
             const participantResult = await participantCollection.insertOne(
               participant
             );
 
-            res.status(201).send(participantResult); // Sending the newly created participant data
+            res.status(200).send(participantResult); // Sending the newly created participant data
           }
         }
 
