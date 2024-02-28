@@ -77,17 +77,6 @@ async function run() {
       }
     });
 
-    app.get("/current_user/:id", async (req, res) => {
-      const id = req.params.id;
-      const user = await userCollection.findOne({ _id: new ObjectId(id) });
-
-      if (user) {
-        res.status(200).send(user);
-      } else {
-        res.status(404).send("User not found");
-      }
-    });
-
     app.patch("/users/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -174,6 +163,16 @@ async function run() {
       } catch (err) {
         res.status(404).send({ message: "no data found" });
       }
+    });
+
+    // create api to delete booking package by id
+    app.delete("/delete_survey/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await surveyCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+
+      res.status(200).send(result);
     });
 
     // create api to create participant
