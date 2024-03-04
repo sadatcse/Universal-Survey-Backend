@@ -2,10 +2,12 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 // const jwt = require('jsonwebtoken');
-const { ObjectId } = require("mongodb");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const { default: Stripe } = require('stripe');
 const app = express();
 const port = process.env.PORT || 5000;
+const stripe = require("stripe")('sk_test_51OFDMCA34jDiSLEQT0kReib3dorQDJEldkv2WfSeM8SMJmToTZOxCt3sx6jucpWIP5aQfmJwV5vkpi9lJoUb7cG700S7C90YJc');
 
 // middleware
 app.use(cors());
@@ -49,7 +51,34 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/users", async (req, res) => {
+
+    // stripe part
+    app.post('/create-checkout-session',async(req,res)=>{
+      const {products} = req.body ;
+      const lineItems = products.map((product)=>({
+        price_data:{
+          currency:'usd',
+          product_data : {
+            name : product.name
+          },
+          unit_amount : product.price*100,
+        },
+        quantity:product.quantity
+      }));
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types:['card'],
+        line_items:lineItems,
+        mode:'payment',
+        success_url:"https://www.youtube.com/watch?v=3OOHC_UzrKA",
+        cancel_url:"https://www.youtube.com/watch?v=3OOHC_UzrKA",
+      })
+      res.json({id:session.id})
+
+    })
+
+
+    app.get('/users', async (req, res) => {
       const cursor = userCollection.find();
       const result = await cursor.toArray();
       res.send(result);
