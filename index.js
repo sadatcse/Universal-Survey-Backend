@@ -106,6 +106,18 @@ async function run() {
       }
     });
 
+    app.delete("/users/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const result = await userCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+        res.send(result);
+      } catch (error) {
+        res.status(404).send("Internal error!");
+      }
+    });
+
     // create api to create participant
     app.post("/create_survey", async (req, res) => {
       const survey = req.body;
