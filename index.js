@@ -2,6 +2,10 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 // const jwt = require('jsonwebtoken');
+
+const stripe = require("stripe")(
+  "sk_test_51NLgDRDJGvskwHBWJoEEQ2sZlfBuad5EfxwvaYwyYg5vJQK0XFhZukMg0PpXDwnrPsszdvUSWRgwwTBnwgkQqHsj00FDZB7I5J"
+);
 const { ObjectId } = require("mongodb");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const app = express();
@@ -32,6 +36,67 @@ async function run() {
     const userCollection = db.collection("User");
     const surveyCollection = db.collection("survey");
     const participantCollection = db.collection("participants");
+
+    // app.post("/create-checkout-session", async (req, res) => {
+    // const { products } = req.body;
+    // const lineItems = products.map((product) => ({
+    //   price_data: {
+    //     currency: "usd",
+    //     product_data: {
+    //       name: product.name,
+    //     },
+    //     unit_amount: product.price * 100,
+    //   },
+    //   quantity: product.quantity,
+    // }));
+
+    //   const session = await stripe.checkout.sessions.create({
+    //     payment_method_types: ["card"],
+    //     line_items: lineItems,
+    //     mode: "payment",
+    //     success_url: "https://www.youtube.com/watch?v=3OOHC_UzrKA",
+    //     cancel_url: "https://www.youtube.com/watch?v=3OOHC_UzrKA",
+    //   });
+    //   res.json({ id: session.id });
+    // });
+
+    app.post("/create-checkout-session", async (req, res) => {
+      const { products } = req.body;
+      console.log(products);
+      // const lineItems = products.map((product) => ({
+      //   price_data: {
+      //     currency: "usd",
+      //     product_data: {
+      //       name: "Primary",
+      //     },
+      //     unit_amount: 10 * 100,
+      //   },
+      //   quantity: 1,
+      // }));
+
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: products.name,
+                description:
+                  "Join us in making a difference! Your donation directly supports our mission",
+                images: [products.image_url],
+              },
+              unit_amount: products.price * 100,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${process.env.PAYMENT__DOMAIN}?success=true`,
+        cancel_url: `${process.env.PAYMENT__DOMAIN}?canceled=true`,
+      });
+
+      res.status(200).send(session);
+    });
 
     app.post("/users", async (req, res) => {
       const newUser = req.body;
