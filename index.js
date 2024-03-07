@@ -95,8 +95,6 @@ async function run() {
         cancel_url: `${process.env.PAYMENT__DOMAIN}?canceled=true`,
       });
 
-      res.setHeader("Access-Control-Allow-Origin", "*");
-
       res.status(200).send(session);
     });
 
