@@ -12,7 +12,15 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://universal-server-front-end.vercel.app",
+    ],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  })
+);
 app.use(express.json());
 
 const uria = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@test.hofjrlw.mongodb.net/?retryWrites=true&w=majority`;
